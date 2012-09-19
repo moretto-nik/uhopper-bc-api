@@ -27,6 +27,8 @@ class UsersController < ApplicationController
   def respond_with_json_message status, ok_message, nok_message=nil
     if status == true
       render json: {:status => "OK", :message => ok_message}, status: :ok, location: nil
+    elsif status == false
+      render json: {:status => "NOK", :message => nok_message}, status: :nok, location: nil
     else
       render json: {:status => "NOK", :message => "Beancounter : #{status}"}, status: :nok, location: nil
     end

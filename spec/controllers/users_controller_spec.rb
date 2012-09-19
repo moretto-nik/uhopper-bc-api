@@ -43,7 +43,7 @@ describe UsersController do
       any_not_exists_id_cart = 100
 
       post 'tracking', {:id_cart => any_not_exists_id_cart}
-      response.body.should == '{"status":"NOK","message":"Beancounter : false"}'
+      response.body.should == '{"status":"NOK","message":"Id Cart not exists"}'
     end
 
     it 'exists user' do
@@ -60,7 +60,7 @@ describe UsersController do
       any_not_exists_id_cart = 100
 
       delete 'check_out', {:id_cart => any_not_exists_id_cart}
-      response.body.should == '{"status":"NOK","message":"Beancounter : false"}'
+      response.body.should == '{"status":"NOK","message":"Id Cart not exists"}'
     end
 
     it 'exists user' do
