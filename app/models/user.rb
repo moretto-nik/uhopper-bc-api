@@ -33,9 +33,6 @@ class User < ActiveRecord::Base
     bc_result = beancounter 'deregister'
   end
 
-  def delete
-    true
-  end
 
   private
   @@common_url = 'http://api.beancounter.io/rest/'
