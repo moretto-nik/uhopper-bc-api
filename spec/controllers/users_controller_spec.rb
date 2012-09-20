@@ -63,12 +63,22 @@ describe UsersController do
       response.body.should == '{"status":"NOK","message":"Id Cart not exists"}'
     end
 
-    it 'exists user' do
-      User.new(:id_cart => 4, :id_user => 15).save
-      any_exists_id_cart = 4
+    it 'exists user and beancounter success' do
+      u = create_user(4,15) 
+      User.stub(:find_by_id_cart).and_return(u)
+      u.stub(:beancounter).and_return(true)
 
-      delete 'check_out', {:id_cart => any_exists_id_cart}
+      delete 'check_out', {:id_cart => u.id_cart}
       response.body.should == '{"status":"OK","message":"L\'utente 15 ha effettuato il check out"}'
+    end
+    
+    it 'exists user and beancounter fail' do
+      u = create_user(6,15) 
+      User.stub(:find_by_id_cart).and_return(u)
+      u.stub(:beancounter).and_return("fail deregistration")
+
+      delete 'check_out', {:id_cart => u.id_cart}
+      response.body.should == '{"status":"NOK","message":"Beancounter : fail deregistration"}'
     end
   end
 

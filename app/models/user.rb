@@ -30,7 +30,7 @@ class User < ActiveRecord::Base
   end
         
   def check_out
-    true
+    bc_result = beancounter 'deregister'
   end
 
   def delete
