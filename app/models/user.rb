@@ -16,9 +16,9 @@ class User < ActiveRecord::Base
   end
 
   def check_in
+    self.id_user += 1
     bc_result = beancounter 'register'
     if bc_result == true
-      self.id_user += 1
       self.save
     else
       bc_result
@@ -53,9 +53,9 @@ class User < ActiveRecord::Base
                                       }
              }
 
-  
+
   def generate_url(url)
-    url.gsub!("api_key", 'fbd4d4ce-31bd11804a')
+    url.gsub!("api_key", 'dedcec43-d853-4aa1-b1c6-ba67ee76d708')
     url.gsub!("user.username", self.username)
     url
   end
