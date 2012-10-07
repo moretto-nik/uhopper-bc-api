@@ -11,13 +11,15 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120917154957) do
+ActiveRecord::Schema.define(:version => 20121007184802) do
 
   create_table "users", :force => true do |t|
     t.integer  "id_cart"
-    t.integer  "id_user",    :default => 0
-    t.datetime "created_at",                :null => false
-    t.datetime "updated_at",                :null => false
+    t.integer  "id_user",       :default => 0
+    t.datetime "created_at",                       :null => false
+    t.datetime "updated_at",                       :null => false
+    t.boolean  "active",        :default => false
+    t.string   "last_activity"
   end
 
   add_index "users", ["id_cart"], :name => "index_users_on_id_cart", :unique => true

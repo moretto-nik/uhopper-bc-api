@@ -1,5 +1,5 @@
 class User < ActiveRecord::Base
-  attr_accessible :id_cart, :id_user
+  attr_accessible :id_cart, :id_user, :active, :last_activity
 
   validates_uniqueness_of :id_cart
 
@@ -15,44 +15,55 @@ class User < ActiveRecord::Base
     "#{self.id_cart}.#{self.id_user}"
   end
 
-  def check_in
+  def check_in(api_key)
     self.id_user += 1
-    bc_result = beancounter 'register'
+    bc_result = beancounter 'register', api_key
     if bc_result == true
+      self.active = true
       self.save
     else
       bc_result
     end
   end
 
-  def tracking
-    true
+  def tracking(api_key, lat, lon)
+    token = beancounter 'authenticate', api_key
+    beancounter_tracking(token, lat, lon) if token
   end
-        
-  def check_out
-    bc_result = beancounter 'deregister'
+
+  def check_out(api_key)
+    bc_result = beancounter 'deregister', api_key
+    self.active = false if bc_result == true
+    bc_result
   end
 
 
   private
-  @@common_url = 'http://api.beancounter.io/rest/'
+  @@common_url = 'http://194.116.82.81:8080/beancounter-platform/rest/'
 
-  @@action = { 'user_register'     => { :path     => "#{@@common_url}user/register?apikey=api_key",
-                                        :method   => :post,
-                                        :params   => { :name => "user.name", 
-                                                       :surname => "user.surname", 
-                                                       :username => "user.username",
-                                                       :password => "user.password"
-                                                     }
-                                      },
-               'user_deregister'   => { :path     => "#{@@common_url}user/user.username?apikey=api_key",
-                                        :method   => :delete
-                                      }
+  @@action = { 'register'     => { :path     => "#{@@common_url}user/register?apikey=api_key",
+                                   :method   => :post,
+                                   :params   => { :name => "user.name", 
+                                                  :surname => "user.surname", 
+                                                  :username => "user.username",
+                                                  :password => "user.password"
+                                                }
+                                 },
+               'deregister'   => { :path     => "#{@@common_url}user/user.username?apikey=api_key",
+                                   :method   => :delete
+                                 },
+               'authenticate' => { :path     => "#{@@common_url}user/user.username/authenticate?apikey=api_key",
+                                   :method   => :post,
+                                   :params   => { :username => "user.username",
+                                                  :password => "user.password"
+                                   }
+                                 }
              }
 
 
-  def generate_url(url)
-    url.gsub!("api_key", 'dedcec43-d853-4aa1-b1c6-ba67ee76d708')
+  def generate_url(url, api_key = nil)
+    url.gsub!("api_key", '7f462fb7-ec6e-4e2f-866b-d7e6fb06f90f')
+    #url.gsub!("api_key", api_key) if api_key.present?
     url.gsub!("user.username", self.username)
     url
   end
@@ -61,15 +72,28 @@ class User < ActiveRecord::Base
     params[:name] = self.username
     params[:surname] = self.username
     params[:username] = self.username
-    params[:password] = self.username
+    params[:password] = "pwd#{self.username}"
     params
   end
 
-  def beancounter(action)
-    action_key = "user_#{action}"
-    url = generate_url(@@action[action_key][:path])
-    params = generate_params(@@action[action_key][:params]) if @@action[action_key][:params]
-    RestClient.send(@@action[action_key][:method], url, params) do | req, res, result|
+  def beancounter(action, api_key = nil)
+    url = generate_url(@@action[action][:path], api_key)
+    params = generate_params(@@action[action][:params]) if @@action[action][:params]
+    RestClient.send(@@action[action][:method], url, params) do | req, res, result|
+      if result.code == "200" && JSON.parse(req.body)["status"] == "OK"
+        return JSON.parse(req.body)["object"]["userToken"] if action == "authenticate"
+        true
+      else
+        JSON.parse(req.body)["message"]
+      end
+    end
+  end
+
+  def beancounter_tracking(token, lat, lon)
+    url = "#{@@common_url}activities/add/#{self.username}"
+    params = [:username => self.username, :activity => "{\"object\": {\"type\": \"MALL-PLACE\",\"url\": null,\"name\": \"test-uh\",\"description\": \"test-uh\",\"lat\": 32343,\"lon\": 4321,\"mall\": \"123\",\"sensor\": \"456\"},\"context\": {\"date\": null,\"service\": null,\"mood\": null},\"verb\": \"LOCATED\"}", :userToken => token]
+    RestClient.send(:post, url, params) do | req, res, result|
+      debugger
       if result.code == "200" && JSON.parse(req.body)["status"] == "OK"
         true
       else
