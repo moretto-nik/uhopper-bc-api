@@ -20,6 +20,8 @@ group :test do
   gem 'database_cleaner'
   gem 'rb-fsevent'
 end
+
+gem "capistrano", :group => :development
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
