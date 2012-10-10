@@ -24,7 +24,7 @@ class UsersController < ApplicationController
   end
 
   def active
-    status, json = User.active_users
+    status, json = User.active_users(params[:api_key])
     respond_with_json_message status, json
   end
 

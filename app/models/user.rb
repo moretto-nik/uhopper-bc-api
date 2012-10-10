@@ -11,6 +11,21 @@ class User < ActiveRecord::Base
     end
   end
 
+  def self.active_users(api_key)
+    active_users = User.find_all_by_active(true)
+    return true, "Not exists active users" if active_users.empty?
+
+    json = []
+    active_users.each do |user|
+      lat, lon = user.beancounter_last_activity(api_key)
+      return lat, lon if !lat
+
+      json << {:username => user.username, :lat => lat, :lon => lon}
+    end
+    
+    return true, json
+  end
+
   def username
     "#{self.id_cart}.#{self.id_user}"
   end
@@ -33,7 +48,10 @@ class User < ActiveRecord::Base
 
   def check_out(api_key)
     bc_result = beancounter 'deregister', api_key
-    self.active = false if bc_result == true
+    if bc_result == true
+      self.active = false 
+      self.save
+    end
     bc_result
   end
 
@@ -62,8 +80,8 @@ class User < ActiveRecord::Base
 
 
   def generate_url(url, api_key = nil)
-    url.gsub!("api_key", '7f462fb7-ec6e-4e2f-866b-d7e6fb06f90f')
-    #url.gsub!("api_key", api_key) if api_key.present?
+    #url.gsub!("api_key", '7f462fb7-ec6e-4e2f-866b-d7e6fb06f90f')
+    url.gsub!("api_key", api_key) if api_key.present?
     url.gsub!("user.username", self.username)
     url
   end
@@ -90,14 +108,26 @@ class User < ActiveRecord::Base
   end
 
   def beancounter_tracking(token, lat, lon)
-    url = "#{@@common_url}activities/add/#{self.username}"
-    params = [:username => self.username, :activity => "{\"object\": {\"type\": \"MALL-PLACE\",\"url\": null,\"name\": \"test-uh\",\"description\": \"test-uh\",\"lat\": 32343,\"lon\": 4321,\"mall\": \"123\",\"sensor\": \"456\"},\"context\": {\"date\": null,\"service\": null,\"mood\": null},\"verb\": \"LOCATED\"}", :userToken => token]
-    RestClient.send(:post, url, params) do | req, res, result|
-      debugger
+    params = "activity={\"object\":{\"type\":\"MALL-PLACE\",\"url\":null,\"name\":\"test-uh\",\"description\":\"test-uh\",\"lat\":#{lat},\"lon\":#{lon},\"mall\":\"123\",\"sensor\":\"456\"},\"context\":{\"date\":null,\"service\":null,\"mood\":null},\"verb\":\"LOCATED\"}" 
+    url = "http://194.116.82.81:8080/beancounter-platform/rest/activities/add/#{self.username}?token=#{token}"
+    RestClient.post(url, params) do | req, res, result|
       if result.code == "200" && JSON.parse(req.body)["status"] == "OK"
+        self.update_attributes(:last_activity => JSON.parse(req.body)["object"])
         true
       else
         JSON.parse(req.body)["message"]
+      end
+    end
+  end
+
+  public
+  def beancounter_last_activity(api_key)
+    url = "http://194.116.82.81:8080/beancounter-platform/rest/activities/#{self.last_activity}?apikey=#{api_key}"
+    RestClient.get url do | req, res, result|
+      if result.code == "200" && JSON.parse(req.body)["status"] == "OK"
+        return JSON.parse(req.body)["object"]["activity"]["object"]["lat"], JSON.parse(req.body)["object"]["activity"]["object"]["lon"]
+      else
+        return false, JSON.parse(req.body)["message"]
       end
     end
   end
