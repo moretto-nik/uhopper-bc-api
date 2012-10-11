@@ -21,7 +21,11 @@ group :test do
   gem 'rb-fsevent'
 end
 
-gem "capistrano", :group => :development
+group :development do
+  gem 'capistrano'
+  gem 'capistrano-ext'
+  gem 'rvm-capistrano'
+end
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 

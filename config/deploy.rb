@@ -1,4 +1,5 @@
 require "bundler/capistrano"
+require "rvm/capistrano"
 
 set :application, "beancounter.local"
 set :deploy_to, "/var/www/#{application}"
