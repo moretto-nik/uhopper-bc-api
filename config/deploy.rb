@@ -1,7 +1,6 @@
 require "bundler/capistrano"
-require "rvm/capistrano"
 
-set :application, "beancounter.it"
+set :application, "beancounter.local"
 set :deploy_to, "/var/www/#{application}"
 
 set :scm, :git
@@ -14,9 +13,9 @@ set :scm_passphrase, "vagrant"
 ssh_options[:forward_agent] = true 
 default_run_options[:pty] = true 
 
-role :web, "beancounter.it"                          # Your HTTP server, Apache/etc
-role :app, "beancounter.it"                          # This may be the same as your `Web` server
-role :db,  "beancounter.it", :primary => true        # This is where Rails migrations will run
+role :web, "beancounter.local"                         # Your HTTP server, Apache/etc
+role :app, "beancounter.local"                         # This may be the same as your `Web` server
+role :db, "beancounter.local", :primary => true        # This is where Rails migrations will run
 
 # if you want to clean up old releases on each deploy uncomment this:
 # after "deploy:restart", "deploy:cleanup"

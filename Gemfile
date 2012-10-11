@@ -22,7 +22,6 @@ group :test do
 end
 
 gem "capistrano", :group => :development
-gem 'capistrano-ext', :group => :development
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
