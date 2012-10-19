@@ -8,6 +8,7 @@ gem 'rails', '3.2.8'
 gem 'rails-api'
 gem 'rest-client', :git => 'git://github.com/archiloque/rest-client.git'
 gem 'sqlite3'
+gem 'rb-readline'
 
 group :test do
   gem 'rspec-rails'
