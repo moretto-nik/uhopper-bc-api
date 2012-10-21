@@ -12,7 +12,7 @@ class User < ActiveRecord::Base
   end
 
   def self.active_users(api_key)
-    active_users = User.find_all_by_active(true).select { |user| user.last_activity }
+    active_users = User.find_all_by_active_and_api_key(true, api_key).select { |user| user.last_activity }
     return true, "Not exists active users" if active_users.empty?
 
     json = []
@@ -20,8 +20,16 @@ class User < ActiveRecord::Base
       lat, lon = user.beancounter_last_activity(api_key)
       json << {:username => user.username, :lat => lat, :lon => lon} if lat
     end
-    
+
     return true, json
+  end
+
+  def self.checking_in(api_key)
+    User.find_all_by_active_and_api_key(true, api_key).count
+  end
+
+  def self.checking_out(api_key)
+    User.find_all_by_active_and_api_key(false, api_key).count
   end
 
   def username
@@ -33,6 +41,7 @@ class User < ActiveRecord::Base
     bc_result = beancounter 'register', api_key
     if bc_result == true
       self.active = true
+      self.api_key = api_key
       self.save
     else
       self.delete

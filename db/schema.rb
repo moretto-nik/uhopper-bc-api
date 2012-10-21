@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121007184802) do
+ActiveRecord::Schema.define(:version => 20121021171538) do
 
   create_table "users", :force => true do |t|
     t.integer  "id_cart"
@@ -20,6 +20,7 @@ ActiveRecord::Schema.define(:version => 20121007184802) do
     t.datetime "updated_at",                       :null => false
     t.boolean  "active",        :default => false
     t.string   "last_activity"
+    t.string   "api_key"
   end
 
   add_index "users", ["id_cart"], :name => "index_users_on_id_cart", :unique => true

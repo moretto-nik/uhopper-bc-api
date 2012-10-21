@@ -28,6 +28,14 @@ class UsersController < ApplicationController
     respond_with_json_message status, json
   end
 
+  def checking_in
+    respond_with_json_message true, User.checking_in(params[:api_key])
+  end
+
+  def checking_out
+    respond_with_json_message true, User.checking_out(params[:api_key])
+  end
+
   private
   def respond_with_json_message status, ok_message, nok_message=nil
     if status == true
